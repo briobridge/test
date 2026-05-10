@@ -3,802 +3,378 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lightning Pay — Bitcoin Payment Generator</title>
+<title>CashApp Pay</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#00D632;--green-dark:#00b82b;--green-glow:rgba(0,214,50,0.2);
+  --bg:#0a0a0a;--surface:#141414;--surface2:#1c1c1c;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#ffffff;--muted:rgba(255,255,255,0.38);--muted2:rgba(255,255,255,0.55);
+  --red:#ef4444;--mono:'Courier New',monospace;
+}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:1.5rem 1rem;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,214,50,0.06) 0%, transparent 70%);
+  pointer-events:none;z-index:0;
+}
 
-  :root {
-    --orange: #F7931A;
-    --orange-dark: #d97c10;
-    --bg: #0d0d0d;
-    --surface: #161616;
-    --surface2: #1e1e1e;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #f0f0f0;
-    --muted: rgba(255,255,255,0.38);
-    --muted2: rgba(255,255,255,0.6);
-    --green: #22c55e;
-    --red: #ef4444;
-    --radius: 12px;
-    --radius-sm: 8px;
-    --mono: 'Courier New', monospace;
-  }
+.card{
+  position:relative;z-index:1;
+  width:100%;max-width:420px;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:2rem 1.75rem 1.75rem;
+  box-shadow:0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03);
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
-  }
+/* Header */
+.page-title{
+  text-align:center;
+  font-size:22px;font-weight:700;letter-spacing:-0.02em;
+  margin-bottom:0.35rem;
+}
+.page-title span{color:var(--green)}
+.page-sub{text-align:center;font-size:13px;color:var(--muted2);margin-bottom:1.75rem}
 
-  /* subtle grid bg */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(247,147,26,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(247,147,26,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
+.divider{height:1px;background:var(--border);margin-bottom:1.75rem}
 
-  .container {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 860px;
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
-  }
+/* Amount display */
+.amount-display{text-align:center;margin-bottom:1.5rem}
+.amount-big{
+  font-size:52px;font-weight:700;font-family:var(--mono);
+  letter-spacing:-3px;line-height:1;color:var(--text);
+  transition:color 0.2s;margin-bottom:2px;
+}
+.amount-big.active{color:var(--green)}
 
-  /* ── LEFT PANEL ── */
-  .left {
-    background: #111;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--border);
-    position: relative;
-    overflow: hidden;
-  }
+/* Input */
+.field{margin-bottom:1rem}
+.field-label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px}
+.inp-wrap{position:relative}
+.inp-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:600;color:var(--muted2);pointer-events:none}
+input[type="number"],input[type="text"]{
+  width:100%;background:var(--surface2);
+  border:1px solid var(--border2);border-radius:12px;
+  padding:13px 14px 13px 34px;
+  font-size:16px;color:var(--text);font-family:inherit;
+  outline:none;transition:border-color 0.15s;
+  -moz-appearance:textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
+input:focus{border-color:rgba(0,214,50,0.5);box-shadow:0 0 0 3px rgba(0,214,50,0.08)}
+input::placeholder{color:var(--muted)}
 
-  .left::after {
-    content: '⚡';
-    position: absolute;
-    bottom: -20px;
-    right: -10px;
-    font-size: 180px;
-    opacity: 0.03;
-    pointer-events: none;
-    user-select: none;
-  }
+/* Quick amounts */
+.quick-row{display:flex;gap:8px;margin-bottom:1.25rem}
+.q-btn{
+  flex:1;padding:9px 4px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:10px;font-size:13px;font-weight:500;
+  color:var(--muted2);cursor:pointer;text-align:center;
+  transition:all 0.12s;
+}
+.q-btn:hover{border-color:rgba(0,214,50,0.4);color:var(--green)}
+.q-btn.sel{background:rgba(0,214,50,0.1);border-color:var(--green);color:var(--green)}
 
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 2.5rem;
-  }
+/* Pay button */
+.pay-btn{
+  width:100%;padding:15px;
+  background:var(--green);border:none;border-radius:12px;
+  font-size:16px;font-weight:700;color:#000;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all 0.15s;letter-spacing:-0.01em;
+  box-shadow:0 4px 24px var(--green-glow);
+  margin-top:0.25rem;
+}
+.pay-btn:hover{background:var(--green-dark);transform:translateY(-1px);box-shadow:0 8px 32px var(--green-glow)}
+.pay-btn:active{transform:translateY(0) scale(0.985)}
+.pay-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+.cashapp-icon{font-size:20px}
 
-  .brand-icon {
-    width: 34px;
-    height: 34px;
-    background: var(--orange);
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
+/* ── RESULT STATE ── */
+.result-card{display:none;flex-direction:column;align-items:center;gap:1.25rem}
+.result-card.show{display:flex}
 
-  .brand-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
-  .brand-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.result-header{text-align:center}
+.result-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.result-amt{font-size:13px;color:var(--muted2)}
 
-  .amount-hero {
-    text-align: center;
-    margin-bottom: 1.75rem;
-    padding: 1.25rem 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
+.qr-container{
+  background:#fff;border-radius:16px;
+  padding:16px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.qr-container canvas,.qr-container img{display:block !important;width:200px !important;height:200px !important}
 
-  .amount-sats {
-    font-size: 38px;
-    font-weight: 700;
-    font-family: var(--mono);
-    letter-spacing: -2px;
-    color: var(--text);
-    line-height: 1;
-    margin-bottom: 4px;
-    transition: color 0.2s;
-  }
+.cashapp-btn{
+  width:100%;padding:15px;
+  background:var(--green);border:none;border-radius:12px;
+  font-size:16px;font-weight:700;color:#000;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all 0.15s;
+  box-shadow:0 4px 24px var(--green-glow);
+  text-decoration:none;
+}
+.cashapp-btn:hover{background:var(--green-dark);transform:translateY(-1px)}
+.cashapp-btn:active{transform:scale(0.985)}
 
-  .amount-sats.active { color: var(--orange); }
+.expiry-row{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--muted);
+}
+.expiry-val{font-family:var(--mono);color:var(--green);font-weight:600}
+.expiry-val.urgent{color:var(--red)}
 
-  .amount-usd {
-    font-size: 12px;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
+.new-btn{
+  background:transparent;border:1px solid var(--border2);
+  border-radius:10px;padding:9px 20px;
+  font-size:13px;color:var(--muted2);cursor:pointer;
+  transition:all 0.12s;width:100%;
+}
+.new-btn:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
 
-  .field { margin-bottom: 12px; }
+/* Loading */
+.loading-wrap{display:none;flex-direction:column;align-items:center;gap:14px;padding:1rem 0}
+.loading-wrap.show{display:flex}
+.spinner{width:36px;height:36px;border:2.5px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:13px;color:var(--muted2)}
 
-  .field label {
-    display: block;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-
-  .inp-wrap { position: relative; }
-  .inp-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    color: var(--muted);
-    pointer-events: none;
-  }
-
-  input[type="number"],
-  input[type="text"],
-  select {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px 10px 34px;
-    font-size: 13px;
-    color: var(--text);
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.15s;
-    -moz-appearance: textfield;
-  }
-
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-  input[type="text"] { padding-left: 34px; }
-  select { padding-left: 34px; appearance: none; cursor: pointer; }
-
-  input:focus, select:focus { border-color: rgba(247,147,26,0.5); }
-
-  .quick-row {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 1.25rem;
-  }
-
-  .q-btn {
-    padding: 5px 10px;
-    background: transparent;
-    border: 1px solid var(--border2);
-    border-radius: 20px;
-    font-size: 11px;
-    color: var(--muted2);
-    cursor: pointer;
-    font-family: var(--mono);
-    transition: all 0.12s;
-  }
-
-  .q-btn:hover { border-color: var(--orange); color: var(--orange); }
-  .q-btn.sel { background: rgba(247,147,26,0.12); border-color: var(--orange); color: var(--orange); }
-
-  .generate-btn {
-    width: 100%;
-    padding: 13px;
-    background: var(--orange);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 600;
-    color: #000;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.15s;
-    letter-spacing: -0.01em;
-    margin-top: auto;
-  }
-
-  .generate-btn:hover { background: var(--orange-dark); transform: translateY(-1px); }
-  .generate-btn:active { transform: translateY(0) scale(0.985); }
-  .generate-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-
-  /* ── RIGHT PANEL ── */
-  .right {
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* States */
-  .state { display: none; flex-direction: column; flex: 1; }
-  .state.active { display: flex; }
-
-  /* Idle */
-  #st-idle {
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 14px;
-  }
-
-  .idle-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-  }
-
-  .idle-title { font-size: 16px; font-weight: 600; }
-  .idle-sub { font-size: 13px; color: var(--muted2); line-height: 1.6; max-width: 220px; }
-
-  /* Loading */
-  #st-loading {
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-  }
-
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 2.5px solid var(--border2);
-    border-top-color: var(--orange);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-txt { font-size: 13px; color: var(--muted2); }
-
-  /* Result */
-  #st-result { gap: 0; }
-
-  .result-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 1.25rem;
-  }
-
-  .live-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 0 0 rgba(34,197,94,0.4);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
-    70% { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
-    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
-  }
-
-  .live-label { font-size: 12px; color: var(--green); font-weight: 500; }
-  .result-sats { font-size: 13px; color: var(--muted2); margin-left: auto; font-family: var(--mono); }
-
-  .qr-row {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    margin-bottom: 12px;
-  }
-
-  .qr-wrap {
-    width: 88px;
-    height: 88px;
-    background: #fff;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    overflow: hidden;
-    padding: 4px;
-  }
-
-  .qr-wrap canvas, .qr-wrap img { display: block; width: 80px !important; height: 80px !important; }
-
-  .qr-details { flex: 1; min-width: 0; }
-  .qr-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    background: rgba(247,147,26,0.12);
-    border: 1px solid rgba(247,147,26,0.25);
-    border-radius: 4px;
-    font-size: 10px;
-    color: var(--orange);
-    font-weight: 500;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .invoice-str {
-    font-family: var(--mono);
-    font-size: 9.5px;
-    color: var(--muted2);
-    word-break: break-all;
-    line-height: 1.5;
-    max-height: 48px;
-    overflow: hidden;
-  }
-
-  .section-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .cashapp-pill {
-    padding: 2px 7px;
-    background: rgba(0,214,79,0.1);
-    border: 1px solid rgba(0,214,79,0.2);
-    border-radius: 4px;
-    font-size: 9px;
-    color: #00D64F;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-  }
-
-  .link-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 9px 12px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted2);
-    word-break: break-all;
-    line-height: 1.5;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: border-color 0.15s;
-  }
-
-  .link-box:hover { border-color: rgba(247,147,26,0.3); }
-
-  .actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 1rem;
-  }
-
-  .act-btn {
-    padding: 9px 8px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 11px;
-    color: var(--muted2);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.12s;
-  }
-
-  .act-btn .act-icon { font-size: 16px; }
-  .act-btn:hover { border-color: var(--border2); color: var(--text); background: #222; }
-  .act-btn:active { transform: scale(0.97); }
-  .act-btn.success { border-color: var(--green); color: var(--green); }
-
-  .expiry-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: auto;
-  }
-
-  .expiry-val { font-family: var(--mono); font-weight: 600; color: var(--orange); font-size: 13px; }
-  .expiry-val.urgent { color: var(--red); }
-
-  /* Error */
-  #st-error {
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    text-align: center;
-  }
-
-  .err-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-  }
-
-  .err-msg { font-size: 12px; color: var(--muted2); max-width: 220px; line-height: 1.6; }
-
-  .retry-btn {
-    padding: 9px 22px;
-    background: transparent;
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.12s;
-  }
-
-  .retry-btn:hover { border-color: var(--orange); color: var(--orange); }
-
-  /* Config bar */
-  .config-bar {
-    position: fixed;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 30px;
-    padding: 6px 16px;
-    font-size: 11px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    z-index: 10;
-    white-space: nowrap;
-  }
-
-  .config-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
-
-  @media (max-width: 700px) {
-    .container { grid-template-columns: 1fr; }
-    .left { border-right: none; border-bottom: 1px solid var(--border); }
-    .amount-hero { padding: 1rem 0; }
-    .amount-sats { font-size: 28px; }
-  }
+/* Error */
+.error-box{display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#fca5a5;line-height:1.5;margin-top:10px;font-family:var(--mono);word-break:break-word}
+.error-box.show{display:block}
 </style>
 </head>
 <body>
 
-<div class="container">
-  <!-- LEFT -->
-  <div class="left">
-    <div class="brand">
-      <div class="brand-icon">⚡</div>
-      <div>
-        <div class="brand-name">Lightning Pay</div>
-        <div class="brand-sub">Powered by BTCPay Server</div>
-      </div>
-    </div>
+<div class="card">
 
-    <div class="amount-hero">
-      <div class="amount-sats" id="disp-sats">0</div>
-      <div class="amount-usd" id="disp-usd">≈ $0.00 USD</div>
+  <!-- INPUT STATE -->
+  <div id="input-state">
+    <div class="page-title">$<span>Cash</span>App Pay</div>
+    <div class="divider"></div>
+
+    <div class="amount-display">
+      <div class="amount-big" id="disp-amt">$0</div>
     </div>
 
     <div class="field">
-      <label>Amount (satoshis)</label>
+      <div class="field-label">Amount (USD)</div>
       <div class="inp-wrap">
-        <span class="inp-icon">⚡</span>
-        <input type="number" id="inp-sats" placeholder="e.g. 125000" min="1" oninput="updateAmt(this.value)">
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Description (optional)</label>
-      <div class="inp-wrap">
-        <span class="inp-icon">📝</span>
-        <input type="text" id="inp-desc" placeholder="e.g. Order #142, Payment">
+        <span class="inp-prefix">$</span>
+        <input type="number" id="inp-usd" placeholder="0.00" min="0.01" step="0.01" oninput="updateAmt(this.value)">
       </div>
     </div>
 
     <div class="quick-row">
-      <div class="q-btn" onclick="setQ(this,10000)">10k</div>
-      <div class="q-btn" onclick="setQ(this,50000)">50k</div>
-      <div class="q-btn" onclick="setQ(this,100000)">100k</div>
-      <div class="q-btn" onclick="setQ(this,250000)">250k</div>
-      <div class="q-btn" onclick="setQ(this,500000)">500k</div>
-      <div class="q-btn" onclick="setQ(this,1000000)">1M</div>
+      <div class="q-btn" onclick="setQ(this,5)">$5</div>
+      <div class="q-btn" onclick="setQ(this,10)">$10</div>
+      <div class="q-btn" onclick="setQ(this,25)">$25</div>
+      <div class="q-btn" onclick="setQ(this,50)">$50</div>
     </div>
 
-    <button class="generate-btn" id="gen-btn" onclick="generate()">
-      ⚡ Generate Lightning Invoice
-    </button>
-  </div>
-
-  <!-- RIGHT -->
-  <div class="right">
-    <div class="state active" id="st-idle">
-      <div class="idle-icon">⚡</div>
-      <div class="idle-title">Ready to generate</div>
-      <div class="idle-sub">Enter an amount on the left and click Generate to create a real Lightning invoice from your BTCPay store.</div>
+    <div class="field">
+      <div class="field-label">Comments (optional)</div>
+      <div class="inp-wrap">
+        <span class="inp-prefix" style="font-size:14px;color:var(--muted)">💬</span>
+        <input type="text" id="inp-desc" placeholder="Add a comment...">
+      </div>
     </div>
 
-    <div class="state" id="st-loading">
+    <div class="loading-wrap" id="loading-wrap">
       <div class="spinner"></div>
-      <div class="loading-txt">Connecting to BTCPay Server...</div>
+      <div class="loading-txt">Generating invoice...</div>
     </div>
 
-    <div class="state" id="st-result">
-      <div class="result-top">
-        <div class="live-dot"></div>
-        <span class="live-label">Invoice ready</span>
-        <span class="result-sats" id="r-sats"></span>
-      </div>
+    <button class="pay-btn" id="pay-btn" onclick="generate()">
+      <span class="cashapp-icon">$</span>
+      PAY WITH CASHAPP
+    </button>
 
-      <div class="qr-row">
-        <div class="qr-wrap" id="qr-wrap"></div>
-        <div class="qr-details">
-          <div class="qr-tag">⚡ Lightning Network</div>
-          <div class="invoice-str" id="r-invoice"></div>
-        </div>
-      </div>
-
-      <div class="section-label">
-        Cash App payment link <span class="cashapp-pill">cash.app</span>
-      </div>
-      <div class="link-box" id="r-link" onclick="copyLink()" title="Click to copy"></div>
-
-      <div class="actions">
-        <button class="act-btn" id="btn-copy-inv" onclick="copyInvoice()">
-          <span class="act-icon">📋</span>
-          <span id="lbl-inv">Copy invoice</span>
-        </button>
-        <button class="act-btn" id="btn-copy-link" onclick="copyLink()">
-          <span class="act-icon">🔗</span>
-          <span id="lbl-link">Copy link</span>
-        </button>
-        <button class="act-btn" onclick="openCashApp()">
-          <span class="act-icon">↗</span>
-          Open Cash App
-        </button>
-      </div>
-
-      <div class="expiry-footer">
-        <span>Invoice expires in</span>
-        <span class="expiry-val" id="expiry-cd">30:00</span>
-      </div>
-    </div>
-
-    <div class="state" id="st-error">
-      <div class="err-icon">⚠️</div>
-      <div class="idle-title">Request failed</div>
-      <div class="err-msg" id="err-msg">Could not connect to BTCPay Server.</div>
-      <button class="retry-btn" onclick="setState('idle')">← Try again</button>
-    </div>
+    <div class="error-box" id="error-box"></div>
   </div>
-</div>
 
-<div class="config-bar">
-  <div class="config-dot"></div>
-  <span id="cfg-label">BTCPay: mainnet.demo.btcpayserver.org</span>
+  <!-- RESULT STATE -->
+  <div class="result-card" id="result-state">
+    <div class="result-header">
+      <div class="result-title">Scan to pay</div>
+      <div class="result-amt" id="r-amt"></div>
+    </div>
+
+    <div class="qr-container" id="qr-wrap"></div>
+
+    <div class="expiry-row">
+      ⏱ Expires in <span class="expiry-val" id="expiry-cd">10:00</span>
+    </div>
+
+    <a class="cashapp-btn" id="cashapp-link" href="#" target="_blank">
+      <span style="font-size:20px">$</span>
+      Open in Cash App
+    </a>
+
+    <button class="new-btn" onclick="resetPage()">← New payment</button>
+  </div>
+
 </div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────
-var BTCPAY_URL = 'https://mainnet.demo.btcpayserver.org';
-var STORE_ID   = 'AHHwBx8hSFnsKgCEoW3jdrsj1uk9MC9BAzPUt9ckqQVh';
-var API_KEY    = '6e7b0eb9fe861e0eb1a65dee82ac79a2b27e81ba';
-var BTC_PRICE  = 97500; // approx USD — update or fetch live
-// ────────────────────────────────────────────────
+// ── CONFIG ──────────────────────────────────
+var LNBITS_URL  = 'https://demo.lnbits.com';
+var INVOICE_KEY = 'f1abb39ab1ba422790060baec6b6f9a5';
+var EXPIRY_SECS = 600;
+// ────────────────────────────────────────────
 
-var currentInvoice = '';
-var currentLink    = '';
-var expiryTimer    = null;
-var expiryEnd      = 0;
+var btcPrice    = 97500;
+var expiryTimer = null;
+var expiryEnd   = 0;
+var currentLink = '';
+
+async function fetchBtcPrice() {
+  try {
+    var res  = await fetch('https://mempool.space/api/v1/prices');
+    var data = await res.json();
+    btcPrice = data.USD || 97500;
+  } catch(e) { btcPrice = 97500; }
+}
+
+function usdToSats(usd) {
+  return Math.round((parseFloat(usd) / btcPrice) * 100000000);
+}
 
 function updateAmt(v) {
-  var s = parseInt(v) || 0;
-  var el = document.getElementById('disp-sats');
-  el.textContent = s.toLocaleString();
-  el.className = 'amount-sats' + (s > 0 ? ' active' : '');
-  var usd = ((s / 100000000) * BTC_PRICE).toFixed(2);
-  document.getElementById('disp-usd').textContent =
-    '≈ $' + parseFloat(usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USD';
+  var n  = parseFloat(v) || 0;
+  var el = document.getElementById('disp-amt');
+  el.textContent = n > 0
+    ? '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+    : '$0';
+  el.className = 'amount-big' + (n > 0 ? ' active' : '');
 }
 
 function setQ(el, v) {
   document.querySelectorAll('.q-btn').forEach(function(b) { b.classList.remove('sel'); });
   el.classList.add('sel');
-  document.getElementById('inp-sats').value = v;
+  document.getElementById('inp-usd').value = v;
   updateAmt(v);
 }
 
-function setState(name) {
-  ['idle','loading','result','error'].forEach(function(s) {
-    var el = document.getElementById('st-' + s);
-    el.classList.toggle('active', s === name);
-  });
-}
-
 async function generate() {
-  var sats = parseInt(document.getElementById('inp-sats').value) || 0;
-  if (sats < 1) { document.getElementById('inp-sats').focus(); return; }
-  var desc = document.getElementById('inp-desc').value.trim() || 'Lightning Payment';
+  var usd  = parseFloat(document.getElementById('inp-usd').value);
+  var desc = document.getElementById('inp-desc').value.trim() || 'CashApp Payment';
+  var err  = document.getElementById('error-box');
 
-  setState('loading');
-  document.getElementById('gen-btn').disabled = true;
-  if (expiryTimer) clearInterval(expiryTimer);
+  err.classList.remove('show');
+
+  if (!usd || usd <= 0) {
+    document.getElementById('inp-usd').focus();
+    return;
+  }
+
+  var sats = usdToSats(usd);
+  if (sats < 1) { err.textContent = 'Amount too small.'; err.classList.add('show'); return; }
+
+  // Show loading
+  document.getElementById('pay-btn').disabled = true;
+  document.getElementById('loading-wrap').classList.add('show');
 
   try {
-    // Step 1: Create invoice
-    var invoiceRes = await fetch(BTCPAY_URL + '/api/v1/stores/' + STORE_ID + '/invoices', {
+    var res = await fetch(LNBITS_URL + '/api/v1/payments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'token ' + API_KEY
+        'X-Api-Key': INVOICE_KEY
       },
       body: JSON.stringify({
-        amount: (sats / 100000000).toFixed(8),
-        currency: 'BTC',
-        metadata: { itemDesc: desc, orderId: 'pay-' + Date.now() },
-        checkout: {
-          paymentMethods: ['BTC-LightningNetwork'],
-          expirationMinutes: 30
-        }
+        out: false,
+        amount: sats,
+        memo: desc,
+        expiry: EXPIRY_SECS
       })
     });
 
-    if (!invoiceRes.ok) {
-      var errBody = await invoiceRes.json().catch(function() { return {}; });
-      throw new Error(errBody.message || 'HTTP ' + invoiceRes.status + ' from BTCPay');
+    if (!res.ok) {
+      var t = await res.text();
+      throw new Error('Error ' + res.status + ': ' + t);
     }
 
-    var invoice = await invoiceRes.json();
+    var data    = await res.json();
+    var invoice = data.payment_request;
 
-    // Step 2: Get Lightning payment method details
-    var pmRes = await fetch(
-      BTCPAY_URL + '/api/v1/stores/' + STORE_ID + '/invoices/' + invoice.id + '/payment-methods',
-      { headers: { 'Authorization': 'token ' + API_KEY } }
-    );
-
-    var methods = await pmRes.json();
-    var ln = (methods || []).find(function(m) {
-      return m.paymentMethodId && m.paymentMethodId.toLowerCase().includes('lightning');
-    });
-
-    var lnStr = ln ? ln.destination : '';
-
-    if (!lnStr) {
-      // Fallback: use checkout link
-      showResult(sats, invoice.checkoutLink, true);
-    } else {
-      showResult(sats, lnStr, false);
+    if (!invoice || !invoice.toLowerCase().startsWith('lnbc')) {
+      throw new Error('Invalid invoice returned.');
     }
 
-  } catch (e) {
-    document.getElementById('err-msg').textContent = e.message || 'Unknown error. Check your BTCPay URL, Store ID and API key.';
-    setState('error');
+    showResult(usd, sats, invoice);
+
+  } catch(e) {
+    err.textContent = e.message;
+    err.classList.add('show');
+    document.getElementById('pay-btn').disabled = false;
+    document.getElementById('loading-wrap').classList.remove('show');
   }
-
-  document.getElementById('gen-btn').disabled = false;
 }
 
-function showResult(sats, invoiceStr, isCheckoutLink) {
-  currentInvoice = invoiceStr;
+function showResult(usd, sats, invoice) {
+  currentLink = 'https://cash.app/launch/lightning/' + invoice;
 
-  var lnClean = invoiceStr.toLowerCase().startsWith('lightning:')
-    ? invoiceStr.slice(10) : invoiceStr;
-
-  currentLink = isCheckoutLink
-    ? invoiceStr
-    : 'https://cash.app/launch/lightning/' + lnClean;
-
-  document.getElementById('r-sats').textContent = sats.toLocaleString() + ' sats';
-  document.getElementById('r-invoice').textContent = invoiceStr;
-  document.getElementById('r-link').textContent = currentLink;
-
-  // QR Code
+  // Build QR
   var qrWrap = document.getElementById('qr-wrap');
   qrWrap.innerHTML = '';
-  try {
-    new QRCode(qrWrap, {
-      text: invoiceStr,
-      width: 80,
-      height: 80,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  } catch(e) {
-    qrWrap.innerHTML = '<span style="font-size:11px;color:#888;text-align:center;padding:4px">QR<br>N/A</span>';
-  }
+  new QRCode(qrWrap, {
+    text: invoice.toUpperCase(),
+    width: 200, height: 200,
+    colorDark: '#000000', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.L
+  });
 
-  // Expiry countdown — 30 mins
-  expiryEnd = Date.now() + 30 * 60 * 1000;
+  document.getElementById('r-amt').textContent =
+    '$' + usd.toFixed(2) + ' USD';
+  document.getElementById('cashapp-link').href = currentLink;
+
+  // Expiry
+  expiryEnd = Date.now() + EXPIRY_SECS * 1000;
+  if (expiryTimer) clearInterval(expiryTimer);
   expiryTimer = setInterval(tickExpiry, 1000);
   tickExpiry();
 
-  setState('result');
+  // Switch views
+  document.getElementById('input-state').style.display  = 'none';
+  document.getElementById('result-state').classList.add('show');
 }
 
 function tickExpiry() {
   var rem = Math.max(0, Math.round((expiryEnd - Date.now()) / 1000));
-  var m = Math.floor(rem / 60);
-  var s = rem % 60;
-  var el = document.getElementById('expiry-cd');
+  var m   = Math.floor(rem / 60), s = rem % 60;
+  var el  = document.getElementById('expiry-cd');
   el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
-  el.className = 'expiry-val' + (rem < 120 ? ' urgent' : '');
+  el.className   = 'expiry-val' + (rem < 60 ? ' urgent' : '');
   if (rem <= 0) clearInterval(expiryTimer);
 }
 
-function copyInvoice() {
-  if (!currentInvoice) return;
-  navigator.clipboard.writeText(currentInvoice).then(function() {
-    flash('btn-copy-inv', 'lbl-inv', '✓ Copied!', 'Copy invoice');
-  });
+function resetPage() {
+  if (expiryTimer) clearInterval(expiryTimer);
+  document.getElementById('inp-usd').value  = '';
+  document.getElementById('inp-desc').value = '';
+  document.getElementById('disp-amt').textContent  = '$0';
+  document.getElementById('disp-amt').className    = 'amount-big';
+  document.getElementById('error-box').classList.remove('show');
+  document.getElementById('pay-btn').disabled      = false;
+  document.getElementById('loading-wrap').classList.remove('show');
+  document.querySelectorAll('.q-btn').forEach(function(b) { b.classList.remove('sel'); });
+  document.getElementById('result-state').classList.remove('show');
+  document.getElementById('input-state').style.display = '';
 }
 
-function copyLink() {
-  if (!currentLink) return;
-  navigator.clipboard.writeText(currentLink).then(function() {
-    flash('btn-copy-link', 'lbl-link', '✓ Copied!', 'Copy link');
-  });
-}
-
-function openCashApp() {
-  if (currentLink) window.open(currentLink, '_blank');
-}
-
-function flash(btnId, lblId, onText, offText) {
-  var btn = document.getElementById(btnId);
-  var lbl = document.getElementById(lblId);
-  btn.classList.add('success');
-  lbl.textContent = onText;
-  setTimeout(function() {
-    btn.classList.remove('success');
-    lbl.textContent = offText;
-  }, 2000);
-}
-
-// Init
-setState('idle');
+fetchBtcPrice();
 </script>
 </body>
 </html>
