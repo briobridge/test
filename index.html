@@ -4,162 +4,131 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CashApp Pay</title>
+<script src="https://unpkg.com/qr-code-styling@1.9.1/lib/qr-code-styling.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#00D632;--green-dark:#00b82b;--green-glow:rgba(0,214,50,0.2);
+  --green:#00d632;--green-dark:#00b82b;--green-glow:rgba(0,214,50,0.2);
   --bg:#0a0a0a;--surface:#141414;--surface2:#1c1c1c;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
   --text:#ffffff;--muted:rgba(255,255,255,0.38);--muted2:rgba(255,255,255,0.55);
-  --red:#ef4444;--mono:'Courier New',monospace;
+  --red:#ef4444;--mono:"Courier New",monospace;
 }
 body{
   background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   padding:1.5rem 1rem;
 }
 body::before{
-  content:'';position:fixed;inset:0;
+  content:"";position:fixed;inset:0;
   background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,214,50,0.06) 0%, transparent 70%);
   pointer-events:none;z-index:0;
 }
-
 .card{
-  position:relative;z-index:1;
-  width:100%;max-width:420px;
-  background:var(--surface);
-  border:1px solid var(--border2);
-  border-radius:24px;
-  padding:2rem 1.75rem 1.75rem;
-  box-shadow:0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03);
+  position:relative;z-index:1;width:100%;max-width:420px;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:24px;padding:2rem 1.75rem 1.75rem;
+  box-shadow:0 40px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.03);
 }
-
-/* Header */
-.page-title{
-  text-align:center;
-  font-size:22px;font-weight:700;letter-spacing:-0.02em;
-  margin-bottom:0.35rem;
-}
+.page-title{text-align:center;font-size:22px;font-weight:700;letter-spacing:0;margin-bottom:1.25rem}
 .page-title span{color:var(--green)}
-.page-sub{text-align:center;font-size:13px;color:var(--muted2);margin-bottom:1.75rem}
-
-.divider{height:1px;background:var(--border);margin-bottom:1.75rem}
-
-/* Amount display */
-.amount-display{text-align:center;margin-bottom:1.5rem}
-.amount-big{
-  font-size:52px;font-weight:700;font-family:var(--mono);
-  letter-spacing:-3px;line-height:1;color:var(--text);
-  transition:color 0.2s;margin-bottom:2px;
-}
+.divider{height:1px;background:var(--border);margin-bottom:1.5rem}
+.amount-display{text-align:center;margin-bottom:1.25rem}
+.amount-big{font-size:52px;font-weight:700;font-family:var(--mono);letter-spacing:0;line-height:1;color:var(--text);transition:color 0.2s;margin-bottom:2px}
 .amount-big.active{color:var(--green)}
-
-/* Input */
-.field{margin-bottom:1rem}
+.field{margin-bottom:12px}
 .field-label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px}
 .inp-wrap{position:relative}
 .inp-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:600;color:var(--muted2);pointer-events:none}
+.inp-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted);pointer-events:none}
 input[type="number"],input[type="text"]{
-  width:100%;background:var(--surface2);
-  border:1px solid var(--border2);border-radius:12px;
-  padding:13px 14px 13px 34px;
-  font-size:16px;color:var(--text);font-family:inherit;
-  outline:none;transition:border-color 0.15s;
-  -moz-appearance:textfield;
+  width:100%;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:12px;padding:13px 14px 13px 38px;
+  font-size:15px;color:var(--text);font-family:inherit;
+  outline:none;transition:border-color 0.15s;-moz-appearance:textfield;
 }
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
 input:focus{border-color:rgba(0,214,50,0.5);box-shadow:0 0 0 3px rgba(0,214,50,0.08)}
 input::placeholder{color:var(--muted)}
-
-/* Quick amounts */
-.quick-row{display:flex;gap:8px;margin-bottom:1.25rem}
-.q-btn{
-  flex:1;padding:9px 4px;
-  background:var(--surface2);border:1px solid var(--border2);
-  border-radius:10px;font-size:13px;font-weight:500;
-  color:var(--muted2);cursor:pointer;text-align:center;
-  transition:all 0.12s;
-}
+.quick-row{display:flex;gap:8px;margin-bottom:1rem}
+.q-btn{flex:1;padding:9px 4px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;font-size:13px;font-weight:500;color:var(--muted2);cursor:pointer;text-align:center;transition:all 0.12s}
 .q-btn:hover{border-color:rgba(0,214,50,0.4);color:var(--green)}
 .q-btn.sel{background:rgba(0,214,50,0.1);border-color:var(--green);color:var(--green)}
-
-/* Pay button */
-.pay-btn{
-  width:100%;padding:15px;
-  background:var(--green);border:none;border-radius:12px;
-  font-size:16px;font-weight:700;color:#000;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
-  transition:all 0.15s;letter-spacing:-0.01em;
-  box-shadow:0 4px 24px var(--green-glow);
-  margin-top:0.25rem;
-}
+.pay-btn{width:100%;padding:15px;background:var(--green);border:none;border-radius:12px;font-size:16px;font-weight:700;color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.15s;box-shadow:0 4px 24px var(--green-glow);margin-top:4px}
 .pay-btn:hover{background:var(--green-dark);transform:translateY(-1px);box-shadow:0 8px 32px var(--green-glow)}
 .pay-btn:active{transform:translateY(0) scale(0.985)}
 .pay-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
-.cashapp-icon{font-size:20px}
-
-/* ── RESULT STATE ── */
-.result-card{display:none;flex-direction:column;align-items:center;gap:1.25rem}
+.error-box{display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#fca5a5;line-height:1.5;margin-top:10px;word-break:break-word}
+.error-box.show{display:block}
+.result-card{display:none}
 .result-card.show{display:flex}
-
-.result-header{text-align:center}
-.result-title{font-size:16px;font-weight:600;margin-bottom:4px}
-.result-amt{font-size:13px;color:var(--muted2)}
-
-.qr-container{
-  background:#fff;border-radius:16px;
-  padding:16px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+body.result-mode{
+  background:#fff;color:#000;align-items:flex-start;justify-content:center;
+  padding:4rem 1rem 3rem;
 }
-.qr-container canvas,.qr-container img{display:block !important;width:200px !important;height:200px !important}
-
+body.result-mode::before{display:none}
+body.result-mode .card{
+  max-width:760px;background:transparent;border:0;border-radius:0;
+  box-shadow:none;padding:0;
+}
+.cashapp-qr-screen{
+  width:100%;flex-direction:column;align-items:center;text-align:center;
+  color:#000;gap:2.6rem;
+}
+.qr-title{
+  font-size:clamp(2rem, 6vw, 3.8rem);font-weight:800;line-height:1.1;
+  letter-spacing:0;max-width:100%;
+}
+.qr-frame{
+  width:min(70vw, 520px);aspect-ratio:1;background:#fff;border:1px solid #dedede;
+  border-radius:48px;padding:min(5vw, 44px);display:flex;align-items:center;justify-content:center;
+}
+.qr-container{
+  width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;background:#fff;
+}
+.qr-container svg,.qr-container canvas,.qr-container img{display:block !important;width:100% !important;height:100% !important}
+.qr-logo-fallback{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:24%;aspect-ratio:1;border-radius:24%;background:var(--green);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:min(12vw,76px);font-weight:900;line-height:1;
+}
+.merchant-block{display:flex;flex-direction:column;align-items:center;gap:0.55rem}
+.merchant-name{font-size:clamp(2rem, 6vw, 4.1rem);font-weight:800;line-height:1.05}
+.merchant-tag{font-size:clamp(1.55rem, 4.6vw, 3rem);font-weight:400;line-height:1.1}
 .cashapp-btn{
-  width:100%;padding:15px;
-  background:var(--green);border:none;border-radius:12px;
-  font-size:16px;font-weight:700;color:#000;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  width:min(100%, 360px);padding:15px;background:var(--green);border:none;border-radius:12px;
+  font-size:16px;font-weight:800;color:#000;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:10px;text-decoration:none;box-shadow:0 4px 24px var(--green-glow);
   transition:all 0.15s;
-  box-shadow:0 4px 24px var(--green-glow);
-  text-decoration:none;
 }
 .cashapp-btn:hover{background:var(--green-dark);transform:translateY(-1px)}
-.cashapp-btn:active{transform:scale(0.985)}
-
-.expiry-row{
-  display:flex;align-items:center;gap:6px;
-  font-size:12px;color:var(--muted);
-}
-.expiry-val{font-family:var(--mono);color:var(--green);font-weight:600}
-.expiry-val.urgent{color:var(--red)}
-
+.cashapp-btn:active{transform:translateY(0) scale(0.985)}
 .new-btn{
-  background:transparent;border:1px solid var(--border2);
-  border-radius:10px;padding:9px 20px;
-  font-size:13px;color:var(--muted2);cursor:pointer;
-  transition:all 0.12s;width:100%;
+  background:transparent;border:1px solid #dadada;border-radius:10px;padding:9px 20px;
+  font-size:13px;color:#333;cursor:pointer;transition:all 0.12s;
 }
-.new-btn:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
-
-/* Loading */
-.loading-wrap{display:none;flex-direction:column;align-items:center;gap:14px;padding:1rem 0}
-.loading-wrap.show{display:flex}
-.spinner{width:36px;height:36px;border:2.5px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.75s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-txt{font-size:13px;color:var(--muted2)}
-
-/* Error */
-.error-box{display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#fca5a5;line-height:1.5;margin-top:10px;font-family:var(--mono);word-break:break-word}
-.error-box.show{display:block}
+.new-btn:hover{background:#f5f5f5;color:#000}
+@media (max-width:520px){
+  body.result-mode{padding:1rem 0.85rem 1.25rem;min-height:100svh}
+  body.result-mode .card{max-width:360px}
+  .cashapp-qr-screen{gap:0.85rem}
+  .qr-title{font-size:1.55rem;line-height:1.08}
+  .qr-frame{width:min(78vw,300px);border-radius:26px;padding:18px}
+  .merchant-block{gap:0.25rem}
+  .merchant-name{font-size:1.6rem;line-height:1}
+  .merchant-tag{font-size:1.05rem;line-height:1}
+  .cashapp-btn{width:min(100%,300px);padding:12px;font-size:14px}
+  .new-btn{padding:8px 16px;font-size:12px}
+}
 </style>
 </head>
 <body>
-
 <div class="card">
-
-  <!-- INPUT STATE -->
   <div id="input-state">
     <div class="page-title">$<span>Cash</span>App Pay</div>
     <div class="divider"></div>
@@ -184,67 +153,55 @@ input::placeholder{color:var(--muted)}
     </div>
 
     <div class="field">
-      <div class="field-label">Comments (optional)</div>
+      <div class="field-label">Game ID (optional)</div>
       <div class="inp-wrap">
-        <span class="inp-prefix" style="font-size:14px;color:var(--muted)">💬</span>
-        <input type="text" id="inp-desc" placeholder="Add a comment...">
+        <span class="inp-icon">#</span>
+        <input type="text" id="inp-game-id" placeholder="Enter game ID">
       </div>
     </div>
 
-    <div class="loading-wrap" id="loading-wrap">
-      <div class="spinner"></div>
-      <div class="loading-txt">Generating invoice...</div>
-    </div>
-
     <button class="pay-btn" id="pay-btn" onclick="generate()">
-      <span class="cashapp-icon">$</span>
+      <span style="font-size:20px">$</span>
       PAY WITH CASHAPP
     </button>
 
     <div class="error-box" id="error-box"></div>
   </div>
 
-  <!-- RESULT STATE -->
-  <div class="result-card" id="result-state">
-    <div class="result-header">
-      <div class="result-title">Scan to pay</div>
-      <div class="result-amt" id="r-amt"></div>
+  <div class="result-card cashapp-qr-screen" id="result-state">
+    <div class="qr-title">Scan to pay with Cash App</div>
+    <div class="qr-frame">
+      <div class="qr-container" id="qr-wrap"></div>
     </div>
-
-    <div class="qr-container" id="qr-wrap"></div>
-
-    <div class="expiry-row">
-      ⏱ Expires in <span class="expiry-val" id="expiry-cd">10:00</span>
+    <div class="merchant-block">
+      <div class="merchant-name">Tripe 777 Sweeps</div>
+      <div class="merchant-tag">@Triple777Sweeps.com</div>
     </div>
-
-    <a class="cashapp-btn" id="cashapp-link" href="#" target="_blank">
+    <a class="cashapp-btn" id="cashapp-link" href="#" target="_blank" rel="noopener">
       <span style="font-size:20px">$</span>
-      Open in Cash App
+      Go to Cash App
     </a>
-
-    <button class="new-btn" onclick="resetPage()">← New payment</button>
+    <button class="new-btn" onclick="resetPage()">New payment</button>
   </div>
-
 </div>
 
 <script>
-// ── CONFIG ──────────────────────────────────
-var LNBITS_URL  = 'https://demo.lnbits.com';
-var INVOICE_KEY = 'f1abb39ab1ba422790060baec6b6f9a5';
+var LNBITS_URL  = "https://demo.lnbits.com";
+var INVOICE_KEY = "f1abb39ab1ba422790060baec6b6f9a5";
+var BACKEND_URL = "https://YOUR_VERCEL_APP.vercel.app";
 var EXPIRY_SECS = 600;
-// ────────────────────────────────────────────
 
-var btcPrice    = 97500;
-var expiryTimer = null;
-var expiryEnd   = 0;
-var currentLink = '';
+var btcPrice = 97500;
+var pendingData = {};
 
 async function fetchBtcPrice() {
   try {
-    var res  = await fetch('https://mempool.space/api/v1/prices');
+    var res = await fetch("https://mempool.space/api/v1/prices");
     var data = await res.json();
     btcPrice = data.USD || 97500;
-  } catch(e) { btcPrice = 97500; }
+  } catch(e) {
+    btcPrice = 97500;
+  }
 }
 
 function usdToSats(usd) {
@@ -252,126 +209,153 @@ function usdToSats(usd) {
 }
 
 function updateAmt(v) {
-  var n  = parseFloat(v) || 0;
-  var el = document.getElementById('disp-amt');
-  el.textContent = n > 0
-    ? '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
-    : '$0';
-  el.className = 'amount-big' + (n > 0 ? ' active' : '');
+  var n = parseFloat(v) || 0;
+  var el = document.getElementById("disp-amt");
+  el.textContent = n > 0 ? "$" + n.toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:2}) : "$0";
+  el.className = "amount-big" + (n > 0 ? " active" : "");
 }
 
 function setQ(el, v) {
-  document.querySelectorAll('.q-btn').forEach(function(b) { b.classList.remove('sel'); });
-  el.classList.add('sel');
-  document.getElementById('inp-usd').value = v;
+  document.querySelectorAll(".q-btn").forEach(function(b){ b.classList.remove("sel"); });
+  el.classList.add("sel");
+  document.getElementById("inp-usd").value = v;
   updateAmt(v);
 }
 
-async function generate() {
-  var usd  = parseFloat(document.getElementById('inp-usd').value);
-  var desc = document.getElementById('inp-desc').value.trim() || 'CashApp Payment';
-  var err  = document.getElementById('error-box');
+function cashAppIconDataUri() {
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><rect width="160" height="160" rx="35" fill="#00d632"/><text x="80" y="108" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="900" fill="#fff">$</text></svg>';
+  return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+}
 
-  err.classList.remove('show');
+async function generate() {
+  var usd = parseFloat(document.getElementById("inp-usd").value);
+  var gameId = document.getElementById("inp-game-id").value.trim();
+  var desc = gameId ? "Game ID: " + gameId : "CashApp Payment";
+  var err = document.getElementById("error-box");
+  err.classList.remove("show");
 
   if (!usd || usd <= 0) {
-    document.getElementById('inp-usd').focus();
+    document.getElementById("inp-usd").focus();
     return;
   }
 
   var sats = usdToSats(usd);
-  if (sats < 1) { err.textContent = 'Amount too small.'; err.classList.add('show'); return; }
+  if (sats < 1) {
+    err.textContent = "Amount too small.";
+    err.classList.add("show");
+    return;
+  }
 
-  // Show loading
-  document.getElementById('pay-btn').disabled = true;
-  document.getElementById('loading-wrap').classList.add('show');
+  document.getElementById("pay-btn").disabled = true;
 
   try {
-    var res = await fetch(LNBITS_URL + '/api/v1/payments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Api-Key': INVOICE_KEY
-      },
-      body: JSON.stringify({
-        out: false,
-        amount: sats,
-        memo: desc,
-        expiry: EXPIRY_SECS
-      })
+    var res = await fetch(LNBITS_URL + "/api/v1/payments", {
+      method: "POST",
+      headers: { "Content-Type":"application/json", "X-Api-Key": INVOICE_KEY },
+      body: JSON.stringify({ out:false, amount:sats, memo:desc, expiry:EXPIRY_SECS })
     });
 
-    if (!res.ok) {
-      var t = await res.text();
-      throw new Error('Error ' + res.status + ': ' + t);
-    }
-
-    var data    = await res.json();
+    if (!res.ok) throw new Error("LNbits error " + res.status + ": " + await res.text());
+    var data = await res.json();
     var invoice = data.payment_request;
+    var hash = data.payment_hash;
 
-    if (!invoice || !invoice.toLowerCase().startsWith('lnbc')) {
-      throw new Error('Invalid invoice returned.');
+    if (!invoice || !invoice.toLowerCase().startsWith("lnbc")) {
+      throw new Error("Invalid invoice returned.");
     }
 
-    showResult(usd, sats, invoice);
+    pendingData = { game_id:gameId, usd:usd, sats:sats, memo:desc, payment_hash:hash };
+
+    try {
+      await fetch(BACKEND_URL + "/api/register", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify(pendingData)
+      });
+    } catch(e) {
+      console.warn("Backend register failed:", e);
+    }
+
+    showResult(invoice);
 
   } catch(e) {
     err.textContent = e.message;
-    err.classList.add('show');
-    document.getElementById('pay-btn').disabled = false;
-    document.getElementById('loading-wrap').classList.remove('show');
+    err.classList.add("show");
+    document.getElementById("pay-btn").disabled = false;
   }
 }
 
-function showResult(usd, sats, invoice) {
-  currentLink = 'https://cash.app/launch/lightning/' + invoice;
+function showResult(invoice) {
+  var qrWrap = document.getElementById("qr-wrap");
+  var cashappLink = "https://cash.app/launch/lightning/" + invoice;
+  qrWrap.innerHTML = "";
+  qrWrap.classList.remove("fallback-qr");
 
-  // Build QR
-  var qrWrap = document.getElementById('qr-wrap');
-  qrWrap.innerHTML = '';
-  new QRCode(qrWrap, {
-    text: invoice.toUpperCase(),
-    width: 200, height: 200,
-    colorDark: '#000000', colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.L
-  });
+  if (window.QRCodeStyling) {
+    var qrCode = new QRCodeStyling({
+      width: 420,
+      height: 420,
+      type: "svg",
+      data: invoice.toUpperCase(),
+      image: cashAppIconDataUri(),
+      qrOptions: {
+        errorCorrectionLevel: "H"
+      },
+      dotsOptions: {
+        color: "#000000",
+        type: "dots"
+      },
+      cornersSquareOptions: {
+        color: "#000000",
+        type: "extra-rounded"
+      },
+      cornersDotOptions: {
+        color: "#000000",
+        type: "dot"
+      },
+      backgroundOptions: {
+        color: "#ffffff"
+      },
+      imageOptions: {
+        hideBackgroundDots: true,
+        imageSize: 0.22,
+        margin: 6
+      }
+    });
+    qrCode.append(qrWrap);
+  } else if (window.QRCode) {
+    qrWrap.classList.add("fallback-qr");
+    new QRCode(qrWrap, {
+      text: invoice.toUpperCase(),
+      width:420, height:420,
+      colorDark:"#000000", colorLight:"#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    var icon = document.createElement("div");
+    icon.className = "qr-logo-fallback";
+    icon.textContent = "$";
+    qrWrap.appendChild(icon);
+  } else {
+    throw new Error("QR code library unavailable.");
+  }
 
-  document.getElementById('r-amt').textContent =
-    '$' + usd.toFixed(2) + ' USD';
-  document.getElementById('cashapp-link').href = currentLink;
-
-  // Expiry
-  expiryEnd = Date.now() + EXPIRY_SECS * 1000;
-  if (expiryTimer) clearInterval(expiryTimer);
-  expiryTimer = setInterval(tickExpiry, 1000);
-  tickExpiry();
-
-  // Switch views
-  document.getElementById('input-state').style.display  = 'none';
-  document.getElementById('result-state').classList.add('show');
-}
-
-function tickExpiry() {
-  var rem = Math.max(0, Math.round((expiryEnd - Date.now()) / 1000));
-  var m   = Math.floor(rem / 60), s = rem % 60;
-  var el  = document.getElementById('expiry-cd');
-  el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
-  el.className   = 'expiry-val' + (rem < 60 ? ' urgent' : '');
-  if (rem <= 0) clearInterval(expiryTimer);
+  document.body.classList.add("result-mode");
+  document.getElementById("cashapp-link").href = cashappLink;
+  document.getElementById("input-state").style.display = "none";
+  document.getElementById("result-state").classList.add("show");
 }
 
 function resetPage() {
-  if (expiryTimer) clearInterval(expiryTimer);
-  document.getElementById('inp-usd').value  = '';
-  document.getElementById('inp-desc').value = '';
-  document.getElementById('disp-amt').textContent  = '$0';
-  document.getElementById('disp-amt').className    = 'amount-big';
-  document.getElementById('error-box').classList.remove('show');
-  document.getElementById('pay-btn').disabled      = false;
-  document.getElementById('loading-wrap').classList.remove('show');
-  document.querySelectorAll('.q-btn').forEach(function(b) { b.classList.remove('sel'); });
-  document.getElementById('result-state').classList.remove('show');
-  document.getElementById('input-state').style.display = '';
+  document.body.classList.remove("result-mode");
+  document.getElementById("inp-usd").value = "";
+  document.getElementById("inp-game-id").value = "";
+  document.getElementById("disp-amt").textContent = "$0";
+  document.getElementById("disp-amt").className = "amount-big";
+  document.getElementById("error-box").classList.remove("show");
+  document.getElementById("pay-btn").disabled = false;
+  document.querySelectorAll(".q-btn").forEach(function(b){ b.classList.remove("sel"); });
+  document.getElementById("result-state").classList.remove("show");
+  document.getElementById("input-state").style.display = "";
 }
 
 fetchBtcPrice();
